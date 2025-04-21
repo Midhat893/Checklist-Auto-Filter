@@ -16,6 +16,7 @@ if uploaded_file:
         project_types = df["Applies To"].dropna().str.split(',').explode().str.strip().unique()
         selected_project = st.selectbox("Select Project Type", sorted(project_types))
 
+#Main Function
         def auto_fill_designer(row):
             applies = str(row["Applies To"]).lower()
             if selected_project.lower() in applies or "all" in applies:
