@@ -3,7 +3,7 @@ import pandas as pd
 from io import BytesIO
 
 st.set_page_config(page_title="Checklist Auto-Filter", layout="wide")
-st.title("🧾 Project Checklist Auto-Filter")
+st.title("🧾 Checklist Auto-Filter")
 
 uploaded_file = st.file_uploader("Upload your checklist (Excel file)", type=["xlsx"])
 
