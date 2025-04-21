@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Project Checklist Auto-Filter", layout="wide")
+st.set_page_config(page_title="Checklist Auto-Filter", layout="wide")
 st.title("🧾 Project Checklist Auto-Filter")
 
 uploaded_file = st.file_uploader("Upload your checklist (Excel file)", type=["xlsx"])
