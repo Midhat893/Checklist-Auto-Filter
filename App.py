@@ -13,11 +13,9 @@ if uploaded_file:
     if "Applies To" not in df.columns or "Designer" not in df.columns:
         st.error("Excel must contain 'Applies To' and 'Designer' columns.")
     else:
-        # Extract all unique project types
         project_types = df["Applies To"].dropna().str.split(',').explode().str.strip().unique()
         selected_project = st.selectbox("Select Project Type", sorted(project_types))
 
-        # Auto-fill the 'Designer' field or mark NA based on project relevance
         def auto_fill_designer(row):
             applies = str(row["Applies To"]).lower()
             if selected_project.lower() in applies or "all" in applies:
@@ -26,18 +24,15 @@ if uploaded_file:
 
         df["Designer"] = df.apply(auto_fill_designer, axis=1)
 
-        # Mark relevant rows and sort
         df["Is_Relevant"] = df["Designer"] != "NA"
         df = df.sort_values(by="Is_Relevant", ascending=False).drop(columns=["Is_Relevant"])
 
-        # Drop the 'Applies To' column for the final output
         output_df = df.drop(columns=["Applies To"])
 
-        # Show in Streamlit
+ 
         st.write("### Filtered Checklist (Relevant on Top)")
         st.dataframe(output_df, use_container_width=True)
 
-        # Allow file download
         output = BytesIO()
         output_df.to_excel(output, index=False, engine='openpyxl')
         output.seek(0)
