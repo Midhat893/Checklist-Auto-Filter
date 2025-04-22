@@ -15,8 +15,8 @@ if uploaded_file:
     else:
         project_types = df["Applies To"].dropna().str.split(',').explode().str.strip().unique()
         selected_project = st.selectbox("Select Project Type", sorted(project_types))
-
-#Main Function
+        
+        #Main Function
         def auto_fill_designer(row):
             applies = str(row["Applies To"]).lower()
             if selected_project.lower() in applies or "all" in applies:
@@ -25,12 +25,26 @@ if uploaded_file:
 
         df["Designer"] = df.apply(auto_fill_designer, axis=1)
 
+        # df["Is_Relevant"] = df["Designer"] != "NA"
+        # df = df.sort_values(by="Is_Relevant", ascending=False).drop(columns=["Is_Relevant"])
+        
+        editable_df = df[df["Designer"].isna()].reset_index(drop=False)
+        checkbox_states = {}
+        
+        st.write("### Please Check the following Points in Your Design:")
+        for idx, row in df[df["Designer"].isna()].iterrows():
+            checkbox_label = f"{row['Description']}"
+            checkbox_states[idx] = st.checkbox(checkbox_label, key=f"checkbox_{idx}")
+            
+        for idx, row in df[df["Designer"].isna()].iterrows():
+            if checkbox_states[idx]:
+                df.loc[idx, "Designer"] = "Checked"
+        
         df["Is_Relevant"] = df["Designer"] != "NA"
         df = df.sort_values(by="Is_Relevant", ascending=False).drop(columns=["Is_Relevant"])
 
         output_df = df.drop(columns=["Applies To"])
 
- 
         st.write("### Filtered Checklist (Relevant on Top)")
         st.dataframe(output_df, use_container_width=True)
 
