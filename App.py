@@ -24,15 +24,22 @@ if uploaded_file:
             return "NA"
 
         df["Designer"] = df.apply(auto_fill_designer, axis=1)
-
+        
         df["Is_Relevant"] = df["Designer"] != "NA"
-        df = df.sort_values(by="Is_Relevant", ascending=False).drop(columns=["Is_Relevant"])
+        relevant_df = df[df["Is_Relevant"]].copy()
+        non_relevant_df = df[~df["Is_Relevant"]].copy()
+        
+        # Add a checkbox column to relevant rows
+        relevant_df["Selected"] = False
+        edited_relevant_df = st.data_editor(relevant_df, use_container_width=True, num_rows="dynamic")
+        # Merge back everything
+        final_df = pd.concat([edited_relevant_df, non_relevant_df], ignore_index=True)
+        final_df = final_df.drop(columns=["Is_Relevant"])
 
-        output_df = df.drop(columns=["Applies To"])
+        output_df = final_df.drop(columns=["Applies To"])
 
- 
         st.write("### Filtered Checklist (Relevant on Top)")
-        st.dataframe(output_df, use_container_width=True)
+        st.dataframe(final_df.drop(columns=["Applies To"]), use_container_width=True)
 
         output = BytesIO()
         output_df.to_excel(output, index=False, engine='openpyxl')
