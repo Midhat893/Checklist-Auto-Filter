@@ -57,13 +57,25 @@ if uploaded_file:
             base = get_base_serial(sno)
             is_main_point = sno == base
             applies = row["Applies_To_Extracted"]
+            # st.write(applies)
             applies_tester = row["Applies_To_ExtractedTester"]
 
             if is_main_point:
-                if not applies: 
+                project_match = selected_project in applies
+                # st.write(project_match)
+                tester_match = selected_tester in applies_tester
+                # st.write(tester_match)
+                
+                is_generic_project = len(applies) == 0
+                is_generic_tester = len(applies_tester) == 0
+                
+                if (project_match or is_generic_project) and (tester_match or is_generic_tester):
                     relevant_main_bases.add(base)
-                elif selected_project in applies and selected_tester in applies_tester:
-                    relevant_main_bases.add(base)
+                
+                # if not applies_tester or applies: 
+                #     relevant_main_bases.add(base)
+                # elif tester_match or project_match:
+                #     relevant_main_bases.add(base)
 
         df["Designer"] = df["Base_SNo"].apply(lambda b: "" if b in relevant_main_bases else "NA")
 
