@@ -78,7 +78,12 @@ if uploaded_file:
 
         df["Is_Relevant"] = df["Designer"] != "NA"
         df = df.sort_values(by="Is_Relevant", ascending=False).drop(
-            columns=["Is_Relevant", "Applies_To_Extracted", "Base_SNo"]
+            columns=[
+                "Is_Relevant",
+                "Applies_To_Extracted",
+                "Applies_To_ExtractedTester",
+                "Base_SNo"
+                ]
         )
 
         st.write("### Filtered Checklist (Relevant on Top)")
