@@ -15,6 +15,7 @@ if uploaded_file:
         st.error("Excel must contain 'S.No.', 'Description' and 'Designer' columns.")
     else:
         customers = ["Intel", "Xilinx", "AMD", "Nvidia"]
+        testers = ["93K", "T2K", "Ultraflex"]
 
         def get_base_serial(serial):
             match = re.match(r'^(\d+)', str(serial))
@@ -23,13 +24,32 @@ if uploaded_file:
         def extract_customers(description):
             found = [cust for cust in customers if re.search(rf'\b{cust}\b', str(description), re.IGNORECASE)]
             return found
+        
+        def extract_testers(description):
+            found = []
+            for test in testers:
+                pattern = rf'\b{test}\b'
+                if re.search(pattern, str(description), re.IGNORECASE):
+                    found.append(test)
+            return found
 
         df["Base_SNo"] = df["S.No."].apply(get_base_serial)
         df["Applies_To_Extracted"] = df["Description"].apply(extract_customers)
-
+        df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
+        # print(df["Applies_To_ExtractedTester"])
+        
         all_projects = sorted(set(cust for sublist in df["Applies_To_Extracted"] for cust in sublist))
         all_projects.append("All") 
         selected_project = st.selectbox("Select Project Type", sorted(set(all_projects)))
+        
+        all_testers = []
+        for sublist in df["Applies_To_ExtractedTester"]:
+            for test in sublist:
+                all_testers.append(test)
+        unique_testers =set(all_testers)
+        all_proj_tester = sorted(unique_testers)
+        all_proj_tester.append("All")
+        selected_tester = st.selectbox("Select Tester Type", all_proj_tester)
 
         relevant_main_bases = set()
         for _, row in df.iterrows():
@@ -37,11 +57,12 @@ if uploaded_file:
             base = get_base_serial(sno)
             is_main_point = sno == base
             applies = row["Applies_To_Extracted"]
+            applies_tester = row["Applies_To_ExtractedTester"]
 
             if is_main_point:
                 if not applies: 
                     relevant_main_bases.add(base)
-                elif selected_project in applies:
+                elif selected_project in applies and selected_tester in applies_tester:
                     relevant_main_bases.add(base)
 
         df["Designer"] = df["Base_SNo"].apply(lambda b: "" if b in relevant_main_bases else "NA")
