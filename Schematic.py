@@ -6,7 +6,7 @@ from io import BytesIO
 def Schematic():
     uploaded_file = st.file_uploader("Upload your checklist (Excel file)", type=["xlsm"])
     if uploaded_file:
-        df = pd.read_excel(uploaded_file, sheet_name='SCHEMATIC', usecols="A, B, D, E, F", skiprows=1)
+        df = pd.read_excel(uploaded_file, sheet_name='SCHEMATIC', usecols="A,B , D, E, F", skiprows=1)
 
         if "Description" not in df.columns or "D1" not in df.columns or "S.No" not in df.columns:
             st.error("Excel must contain 'S.No', 'Description' and 'D1' columns.")
@@ -79,10 +79,11 @@ def Schematic():
                 if is_main_point:
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
-                    is_generic_project = len(applies) == 0
-                    is_generic_tester = len(applies_tester) == 0
+                    # is_generic_project = len(applies) == 0
+                    # is_generic_tester = len(applies_tester) == 0
+                    is_generic = len(applies) == 0 and len(applies_tester) == 0
 
-                    if (project_match or is_generic_project) and (tester_match or is_generic_tester):
+                    if project_match or tester_match or is_generic:
                         relevant_main_bases.add((heading, base))
 
             def mark_relevance(row):
@@ -106,7 +107,7 @@ def Schematic():
                 if points.empty:
                     continue  # Skip if no points to show
 
-                with st.expander(f"{heading}"):
+                with st.expander(f"**{heading}**"):
                     for idx, row in points.iterrows():
                         desc = str(row["Description"]).strip()
                         if desc:
