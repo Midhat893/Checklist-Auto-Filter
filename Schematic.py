@@ -21,7 +21,7 @@ def Schematic():
             def extract_customers(description):
                 description = str(description).lower()
                 found = []
-                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}']
+                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}',r'for example.*?\b{}']
                 for cust in customers:
                     cust_lower = cust.lower()
                     if any(re.search(p.format(re.escape(cust_lower)), description) for p in ignore_phrases):
@@ -33,7 +33,10 @@ def Schematic():
             def extract_testers(description):
                 description = str(description).lower()
                 found = []
-                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}']
+                ignore_phrases = [r'for reference.*?\b{}',
+                                   r'for e.g..*?\b{}',
+                                   r'For example.*?\b{}'
+                                   ]
                 for test in testers:
                     test_lower = test.lower()
                     if any(re.search(p.format(re.escape(test_lower)), description) for p in ignore_phrases):
