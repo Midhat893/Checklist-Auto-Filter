@@ -17,11 +17,15 @@ def Schematic():
             def get_base_serial(serial):
                 match = re.match(r'^(\d+)', str(serial))
                 return match.group(1) if match else str(serial)
-
+            
+            def is_relay_related(description):
+                description = str(description).lower()
+                return description
+            
             def extract_customers(description):
                 description = str(description).lower()
                 found = []
-                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}',r'for example.*?\b{}']
+                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}',r'for example.*?\b{}', r'QA Only.*?\b{}']
                 for cust in customers:
                     cust_lower = cust.lower()
                     if any(re.search(p.format(re.escape(cust_lower)), description) for p in ignore_phrases):
@@ -48,6 +52,7 @@ def Schematic():
             df["Base_SNo"] = df["S.No"].apply(get_base_serial)
             df["Applies_To_Extracted"] = df["Description"].apply(extract_customers)
             df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
+            # df["Applies_To_ExtractRelay"] = df["Description"].apply(extract_relay)
 
             current_heading = ""
             section_headings = []
@@ -67,6 +72,8 @@ def Schematic():
             all_proj_tester = sorted(set(all_testers))
             all_proj_tester.append("All")
             selected_tester = st.selectbox("Select Tester Type", all_proj_tester)
+
+            uses_relays = st.checkbox("Does your design use relays")
 
             valid_section_headings = set()
             for heading in df["Section_Heading"].unique(): 
@@ -92,8 +99,10 @@ def Schematic():
                 is_main_point = sno == base
                 applies = row["Applies_To_Extracted"]
                 applies_tester = row["Applies_To_ExtractedTester"]
+                # is_relay_point = is_relay_related(row["Description"])
 
                 if is_main_point and heading in valid_section_headings:
+
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
                     # is_generic_project = len(applies) == 0
@@ -109,6 +118,8 @@ def Schematic():
                 heading = row["Section_Heading"]
                 if not sno or sno.lower() == "nan":
                     return ""  
+                if not uses_relays and is_relay_related(row["Description"]):
+                    return "NA"
                 return "" if (heading, base) in relevant_main_bases else "NA"
 
             df["D1"] = df.apply(mark_relevance, axis=1)
