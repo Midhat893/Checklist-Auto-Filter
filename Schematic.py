@@ -20,7 +20,13 @@ def Schematic():
             
             def is_relay_related(description):
                 description = str(description).lower()
-                return description
+                ignore_phrases = [r'and/or.*?\b{}']
+
+                for pattern in ignore_phrases:
+                    if re.search(pattern,description):
+                        return False
+                
+                return 'relay' in description
             
             def extract_customers(description):
                 description = str(description).lower()
