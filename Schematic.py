@@ -57,7 +57,6 @@ def Schematic():
                 if not sno or sno.lower() == "nan":
                     current_heading = desc
                 section_headings.append(current_heading)
-                
             df["Section_Heading"] = section_headings
 
             all_projects = sorted(set(cust for sublist in df["Applies_To_Extracted"] for cust in sublist))
@@ -69,7 +68,22 @@ def Schematic():
             all_proj_tester.append("All")
             selected_tester = st.selectbox("Select Tester Type", all_proj_tester)
 
-            # Filter relevance based on section + base S.No
+            valid_section_headings = set()
+            for heading in df["Section_Heading"].unique(): 
+                heading_lower = str(heading).lower()
+
+                heading_customers = extract_customers(heading_lower)
+                heading_testers = extract_testers(heading_lower)
+
+                is_generic_heading = not heading_customers and not heading_testers
+
+                if (
+                    selected_project in heading_customers or
+                    selected_tester in heading_testers or
+                    is_generic_heading
+                ):
+                    valid_section_headings.add(heading)
+
             relevant_main_bases = set()
             for _, row in df.iterrows():
                 sno = str(row["S.No"]).strip()
@@ -79,7 +93,7 @@ def Schematic():
                 applies = row["Applies_To_Extracted"]
                 applies_tester = row["Applies_To_ExtractedTester"]
 
-                if is_main_point:
+                if is_main_point and heading in valid_section_headings:
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
                     # is_generic_project = len(applies) == 0
@@ -108,15 +122,13 @@ def Schematic():
                 points = group[group["S.No"].notna() & (group["S.No"].astype(str).str.strip().str.lower() != "nan")]
 
                 if points.empty:
-                    continue  # Skip if no points to show
+                    continue  
 
                 with st.expander(f"**{heading}**"):
                     for idx, row in points.iterrows():
                         desc = str(row["Description"]).strip()
                         if desc:
                             checkbox_states[idx] = st.checkbox(desc, key=f"checkbox_{idx}")
-
-                    
 
             for idx, checked in checkbox_states.items():
                 if checked:
