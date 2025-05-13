@@ -56,7 +56,6 @@ def Schematic():
             df["Base_SNo"] = df["S.No"].apply(get_base_serial)
             df["Applies_To_Extracted"] = df["Description"].apply(extract_customers)
             df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
-            # df["Applies_To_ExtractRelay"] = df["Description"].apply(extract_relay)
 
             current_heading = ""
             section_headings = []
