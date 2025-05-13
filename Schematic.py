@@ -17,11 +17,19 @@ def Schematic():
             def get_base_serial(serial):
                 match = re.match(r'^(\d+)', str(serial))
                 return match.group(1) if match else str(serial)
-
+            
+            def is_relay_related(description):
+                description = str(description).lower()
+                ignore_phrases = [r'and/or.*?\b{}']
+                for pattern in ignore_phrases:
+                    if re.search(pattern,description):
+                        return False
+                return 'relay' in description
+            
             def extract_customers(description):
                 description = str(description).lower()
                 found = []
-                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}']
+                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}',r'for example.*?\b{}', r'QA Only.*?\b{}']
                 for cust in customers:
                     cust_lower = cust.lower()
                     if any(re.search(p.format(re.escape(cust_lower)), description) for p in ignore_phrases):
@@ -33,7 +41,10 @@ def Schematic():
             def extract_testers(description):
                 description = str(description).lower()
                 found = []
-                ignore_phrases = [r'for reference.*?\b{}', r'for e.g..*?\b{}']
+                ignore_phrases = [r'for reference.*?\b{}',
+                                   r'for e.g..*?\b{}',
+                                   r'For example.*?\b{}'
+                                   ]
                 for test in testers:
                     test_lower = test.lower()
                     if any(re.search(p.format(re.escape(test_lower)), description) for p in ignore_phrases):
@@ -45,6 +56,7 @@ def Schematic():
             df["Base_SNo"] = df["S.No"].apply(get_base_serial)
             df["Applies_To_Extracted"] = df["Description"].apply(extract_customers)
             df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
+            # df["Applies_To_ExtractRelay"] = df["Description"].apply(extract_relay)
 
             current_heading = ""
             section_headings = []
@@ -54,7 +66,6 @@ def Schematic():
                 if not sno or sno.lower() == "nan":
                     current_heading = desc
                 section_headings.append(current_heading)
-                
             df["Section_Heading"] = section_headings
 
             all_projects = sorted(set(cust for sublist in df["Applies_To_Extracted"] for cust in sublist))
@@ -66,7 +77,24 @@ def Schematic():
             all_proj_tester.append("All")
             selected_tester = st.selectbox("Select Tester Type", all_proj_tester)
 
-            # Filter relevance based on section + base S.No
+            uses_relays = st.checkbox("Does your design use relays")
+
+            valid_section_headings = set()
+            for heading in df["Section_Heading"].unique(): 
+                heading_lower = str(heading).lower()
+
+                heading_customers = extract_customers(heading_lower)
+                heading_testers = extract_testers(heading_lower)
+
+                is_generic_heading = not heading_customers and not heading_testers
+
+                if (
+                    selected_project in heading_customers or
+                    selected_tester in heading_testers or
+                    is_generic_heading
+                ):
+                    valid_section_headings.add(heading)
+
             relevant_main_bases = set()
             for _, row in df.iterrows():
                 sno = str(row["S.No"]).strip()
@@ -76,7 +104,7 @@ def Schematic():
                 applies = row["Applies_To_Extracted"]
                 applies_tester = row["Applies_To_ExtractedTester"]
 
-                if is_main_point:
+                if is_main_point and heading in valid_section_headings:
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
                     # is_generic_project = len(applies) == 0
@@ -92,6 +120,8 @@ def Schematic():
                 heading = row["Section_Heading"]
                 if not sno or sno.lower() == "nan":
                     return ""  
+                if not uses_relays and is_relay_related(row["Description"]):
+                    return "NA"
                 return "" if (heading, base) in relevant_main_bases else "NA"
 
             df["D1"] = df.apply(mark_relevance, axis=1)
@@ -105,15 +135,29 @@ def Schematic():
                 points = group[group["S.No"].notna() & (group["S.No"].astype(str).str.strip().str.lower() != "nan")]
 
                 if points.empty:
-                    continue  # Skip if no points to show
+                    continue  
 
                 with st.expander(f"**{heading}**"):
                     for idx, row in points.iterrows():
                         desc = str(row["Description"]).strip()
                         if desc:
-                            checkbox_states[idx] = st.checkbox(desc, key=f"checkbox_{idx}")
-
-                    
+                            with st.container():
+                                st.markdown(
+                                    f"""
+                                    <div style="
+                                        border: 0px solid #6e6e6e;
+                                        border-radius: 5px;
+                                        padding: 0.05px;
+                                        margin-bottom: -1px;
+                                        background-color: #6e6e6e;
+                                        box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+                                    ">
+                                    """,
+                                    unsafe_allow_html=True
+                                )
+                                checkbox_states[idx] = st.checkbox(desc, key=f"checkbox_{idx}")
+                                st.markdown("</div>", unsafe_allow_html=True)
+                            
 
             for idx, checked in checkbox_states.items():
                 if checked:
