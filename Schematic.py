@@ -56,7 +56,6 @@ def Schematic():
             df["Base_SNo"] = df["S.No"].apply(get_base_serial)
             df["Applies_To_Extracted"] = df["Description"].apply(extract_customers)
             df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
-            # df["Applies_To_ExtractRelay"] = df["Description"].apply(extract_relay)
 
             current_heading = ""
             section_headings = []
@@ -107,8 +106,6 @@ def Schematic():
                 if is_main_point and heading in valid_section_headings:
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
-                    # is_generic_project = len(applies) == 0
-                    # is_generic_tester = len(applies_tester) == 0
                     def QA_Points(description):
                         description = str(description).strip().lower()
                         return not re.search(r'qa only', description, re.IGNORECASE)
