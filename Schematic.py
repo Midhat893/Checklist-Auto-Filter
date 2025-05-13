@@ -21,11 +21,9 @@ def Schematic():
             def is_relay_related(description):
                 description = str(description).lower()
                 ignore_phrases = [r'and/or.*?\b{}']
-
                 for pattern in ignore_phrases:
                     if re.search(pattern,description):
                         return False
-                
                 return 'relay' in description
             
             def extract_customers(description):
@@ -105,10 +103,8 @@ def Schematic():
                 is_main_point = sno == base
                 applies = row["Applies_To_Extracted"]
                 applies_tester = row["Applies_To_ExtractedTester"]
-                # is_relay_point = is_relay_related(row["Description"])
 
                 if is_main_point and heading in valid_section_headings:
-
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
                     # is_generic_project = len(applies) == 0
@@ -145,7 +141,23 @@ def Schematic():
                     for idx, row in points.iterrows():
                         desc = str(row["Description"]).strip()
                         if desc:
-                            checkbox_states[idx] = st.checkbox(desc, key=f"checkbox_{idx}")
+                            with st.container():
+                                st.markdown(
+                                    f"""
+                                    <div style="
+                                        border: 0px solid #6e6e6e;
+                                        border-radius: 5px;
+                                        padding: 0.05px;
+                                        margin-bottom: -1px;
+                                        background-color: #6e6e6e;
+                                        box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+                                    ">
+                                    """,
+                                    unsafe_allow_html=True
+                                )
+                                checkbox_states[idx] = st.checkbox(desc, key=f"checkbox_{idx}")
+                                st.markdown("</div>", unsafe_allow_html=True)
+                            
 
             for idx, checked in checkbox_states.items():
                 if checked:
