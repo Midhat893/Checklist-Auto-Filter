@@ -109,7 +109,11 @@ def Schematic():
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
                     # is_generic_project = len(applies) == 0
                     # is_generic_tester = len(applies_tester) == 0
-                    is_generic = len(applies) == 0 and len(applies_tester) == 0
+                    def QA_Points(description):
+                        description = str(description).strip().lower()
+                        return not re.search(r'qa only', description, re.IGNORECASE)
+
+                    is_generic = len(applies) == 0 and len(applies_tester) == 0 and QA_Points(row["Description"])
 
                     if project_match or tester_match or is_generic:
                         relevant_main_bases.add((heading, base))
