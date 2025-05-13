@@ -107,8 +107,6 @@ def Schematic():
                 if is_main_point and heading in valid_section_headings:
                     project_match = selected_project in applies or selected_project == "All"
                     tester_match = selected_tester in applies_tester or selected_tester == "All"
-                    # is_generic_project = len(applies) == 0
-                    # is_generic_tester = len(applies_tester) == 0
                     def QA_Points(description):
                         description = str(description).strip().lower()
                         return not re.search(r'qa only', description, re.IGNORECASE)
