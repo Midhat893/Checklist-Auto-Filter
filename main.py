@@ -61,18 +61,15 @@ def main(page_name,relay_checkbox_key,desc_checkbox, na_checkbox, download_key):
             df["Applies_To_ExtractedTester"] = df["Description"].apply(extract_testers)
             # df["Applies_To_ExtractRelay"] = df["Description"].apply(extract_relay)
 
-            current_heading = ""
+            current_heading = page_name
             section_headings = []
-            # has_heading = False
             for _, row in df.iterrows():
                 sno = str(row["S.No"]).strip()
                 desc = str(row["Description"]).strip() if not pd.isna(row["Description"]) else ""
                 if not sno or sno.lower() == "nan":
                     current_heading = desc
-                    # has_heading = True
                 section_headings.append(current_heading)
             df["Section_Heading"] = section_headings
-
             
 
             all_projects = sorted(set(cust for sublist in df["Applies_To_Extracted"] for cust in sublist))
